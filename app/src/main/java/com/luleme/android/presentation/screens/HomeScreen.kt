@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -299,6 +301,7 @@ fun HomeScreen(
 
     if (showDaySheet) {
         val sheetRecords = recordsOnDay(records, sheetDateMs)
+        val sheetMaxHeight = (LocalConfiguration.current.screenHeightDp * 0.72f).dp
         ModalBottomSheet(
             onDismissRequest = { showDaySheet = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -306,6 +309,8 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(max = sheetMaxHeight)
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -326,16 +331,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
-                                Text("${moodEmoji(r.mood)}  ${formatDateTime(r.timestamp)}")
-                                if (r.note.isNotEmpty()) {
-                                    Text(
-                                        r.note,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+                            Text("${moodEmoji(r.mood)}  ${formatDateTime(r.timestamp)}")
                             TextButton(onClick = {
                                 showDaySheet = false
                                 deleteWithUndo(r)
