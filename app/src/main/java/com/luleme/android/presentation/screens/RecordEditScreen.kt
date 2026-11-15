@@ -24,7 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -70,8 +69,10 @@ fun RecordEditScreen(
     var mood by remember { mutableIntStateOf(DEFAULT_MOOD) }
     var note by remember { mutableStateOf("") }
     var saving by remember { mutableStateOf(false) }
+    var formReady by remember { mutableStateOf(false) }
 
-    LaunchedEffect(param) {
+    LaunchedEffect(param?.id, param?.date) {
+        formReady = false
         val repo = RecordRepository.getInstance(context)
         val id = param?.id
         if (id != null && id > 0) {
@@ -82,6 +83,7 @@ fun RecordEditScreen(
                 dateMs = record.timestamp
                 mood = record.mood
                 note = record.note
+                formReady = true
                 return@LaunchedEffect
             }
         }
@@ -94,6 +96,7 @@ fun RecordEditScreen(
         }
         mood = DEFAULT_MOOD
         note = ""
+        formReady = true
     }
 
     fun pickDate() {
@@ -137,24 +140,23 @@ fun RecordEditScreen(
     }
 
     fun save() {
-        if (saving) return
+        if (saving || !formReady) return
+        saving = true
         scope.launch {
-            saving = true
             try {
                 val repo = RecordRepository.getInstance(context)
                 if (editing) {
                     repo.update(recordId, dateMs, mood, note)
                     Toast.makeText(context, "已保存修改", Toast.LENGTH_SHORT).show()
                 } else {
-                    repo.add(dateMs, mood, note)
+                    repo.add(dateMs, mood, "")
                     ReminderScheduler.getInstance(context).onRecordCreated(System.currentTimeMillis())
                     Toast.makeText(context, "已记录", Toast.LENGTH_SHORT).show()
                 }
                 onBack()
             } catch (_: Exception) {
-                Toast.makeText(context, "保存失败，请重试", Toast.LENGTH_SHORT).show()
-            } finally {
                 saving = false
+                Toast.makeText(context, "保存失败，请重试", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -238,18 +240,9 @@ fun RecordEditScreen(
                     }
                 }
             }
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                placeholder = { Text("备注（可选）") },
-                shape = RoundedCornerShape(DesignTokens.CARD_RADIUS)
-            )
             Button(
                 onClick = { save() },
-                enabled = !saving,
+                enabled = formReady && !saving,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(DesignTokens.BUTTON_MIN_HEIGHT),
