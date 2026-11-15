@@ -252,7 +252,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("少", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    extras.heat.forEach { color ->
+                    extras.heat.drop(1).forEach { color ->
                         Spacer(
                             modifier = Modifier
                                 .height(12.dp)
@@ -276,17 +276,18 @@ fun HomeScreen(
             if (grandTotal == 0) {
                 EmptyState(title = "还没有记录", desc = "点下方「记一笔」开始吧")
             }
+        }
 
-            Button(
-                onClick = { onAddRecord(null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(DesignTokens.BUTTON_MIN_HEIGHT),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("记一笔")
-            }
-            Spacer(Modifier.height(DesignTokens.BAR_RESERVED))
+        Button(
+            onClick = { onAddRecord(null) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.PAGE_PADDING)
+                .padding(bottom = 8.dp)
+                .height(DesignTokens.BUTTON_MIN_HEIGHT),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("记一笔")
         }
 
         SnackbarHost(hostState = snackbarHostState) { data ->
